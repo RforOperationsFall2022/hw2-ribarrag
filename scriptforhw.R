@@ -17,13 +17,27 @@ consumer_df$Children = consumer_df$Kidhome + consumer_df$Teenhome
 consumer_df$Marital_Status[consumer_df$Marital_Status %in% c('Absurd', 'Alone', 'YOLO')] <- 'Other'
 consumer_df <- consumer_df %>%
   mutate(TotalPurchases = rowSums(across(c(NumStorePurchases,NumWebPurchases,NumCatalogPurchases))))
+consumer_df <- consumer_df %>%
+  mutate(MntPurchases = rowSums(across(c(MntWines, MntFruits, MntMeatProducts, MntFishProducts, MntSweetProducts, MntGoldProds))))
 
 
+consumer_df$MntPurchases
+
+ggplot()
 
 round(mean(mean(consumer_df$NumWebPurchases / consumer_df$TotalPurchases), na.rm = TRUE), 2)
 
 consumer_df$TotalPurchases
-  
+
+colnames(consumer_df)
+
+ggplot(consumer_df, aes(TotalPurchases)) + 
+  geom_histogram()
+
+
+  geom_histogram(aes(fill = cut), binwidth = 0.1, position = "fill",
+                 na.rm = TRUE) +
+  theme(legend.position = "none")
 
 
 ?fluidRow
