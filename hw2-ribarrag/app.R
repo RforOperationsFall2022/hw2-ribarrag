@@ -135,43 +135,83 @@ server <- function(input, output){
     }
     # if they are both the same, then color ir blue
     else {
-      valueBox('Percentage purchases of meat products', value = paste0(percent_meat * 100, "%"), icon = icon('drumstick-bite'), color = 'blue')
+      valueBox('Percentage purchases of meat products', value = paste0(percent_meat * 100, "%"), icon = icon('drumstick-bite'), color = 'teal')
     }
   })
   
   # Fish purchases Info Box
   output$fish_prds <- renderValueBox({
     percent_fish <- round(mean(data()$MntFishProducts / data()$MntPurchases, na.rm = TRUE), 3)
-    if (percent_fish > .3){
+    percent_fish_ALL <- round(mean(consumer_df$MntFishProducts / consumer_df$MntPurchases, na.rm = TRUE), 3)
+    if (percent_fish > percent_fish_ALL){
+      valueBox('Percentage purchases of fish products', value = paste0(percent_fish * 100, "%"), icon = icon('fish'), color = 'green')
+    }
+    else if (percent_fish < percent_fish_ALL){
       valueBox('Percentage purchases of fish products', value = paste0(percent_fish * 100, "%"), icon = icon('fish'), color = 'red')
     }
-    else if (percent_fish < .3){
-      valueBox('Percentage purchases of fish products', value = paste0(percent_fish * 100, "%"), icon = icon('fish'), color = 'blue')
+    else{
+      valueBox('Percentage purchases of fish products', value = paste0(percent_fish * 100, "%"), icon = icon('fish'), color = 'teal')
     }
   })
   
   # Fruits purchases Info Box
   output$fruit_prds <- renderValueBox({
     percent_fruit <- round(mean(data()$MntFruits / data()$MntPurchases, na.rm = TRUE), 3)
-    valueBox('Percentage purchases of fruits products', value = paste0(percent_fruit * 100, "%"), icon = icon('apple'))
+    percent_fruit_ALL <- round(mean(consumer_df$MntFruits / consumer_df$MntPurchases, na.rm = TRUE), 3)
+    if (percent_fruit > percent_fruit_ALL){
+    valueBox('Percentage purchases of fruits products', value = paste0(percent_fruit * 100, "%"), icon = icon('apple'), color = 'green')
+    }
+    else if (percent_fruit < percent_fruit_ALL){
+      valueBox('Percentage purchases of fruits products', value = paste0(percent_fruit * 100, "%"), icon = icon('apple'), color = 'red')
+    }
+    else {
+      valueBox('Percentage purchases of fruits products', value = paste0(percent_fruit * 100, "%"), icon = icon('apple'), color = 'teal')
+    }
   })
 
   # Wine purchases Info Box
   output$wine_prds <- renderValueBox({
     percent_wine <- round(mean(data()$MntWines / data()$MntPurchases, na.rm = TRUE), 3)
-    valueBox('Percentage purchases of wine products', value = paste0(percent_wine * 100, "%"), icon = icon('wine-glass'))
+    percent_wine_ALL <- round(mean(consumer_df$MntWines / consumer_df$MntPurchases, na.rm = TRUE), 3)
+    if (percent_wine > percent_wine_ALL){
+      valueBox('Percentage purchases of wine products', value = paste0(percent_wine * 100, "%"), icon = icon('wine-glass'), color = 'green')  
+    }
+    else if  (percent_wine < percent_wine_ALL){
+      valueBox('Percentage purchases of wine products', value = paste0(percent_wine * 100, "%"), icon = icon('wine-glass'), color = 'red')  
+    }
+    else {
+      valueBox('Percentage purchases of wine products', value = paste0(percent_wine * 100, "%"), icon = icon('wine-glass'), color = 'teal')  
+    }
   })
   
   # Sweet purchases Info Box
   output$sweet_prds <- renderValueBox({
     percent_sweet <- round(mean(data()$MntSweetProducts / data()$MntPurchases, na.rm = TRUE), 3)
-    valueBox('Percentage purchases of sweet products', value = paste0(percent_sweet * 100, "%"), icon = icon('ice-cream'))
+    percent_sweet_ALL <- round(mean(consumer_df$MntSweetProducts / consumer_df$MntPurchases, na.rm = TRUE), 3)
+    if (percent_sweet > percent_sweet_ALL){
+      valueBox('Percentage purchases of sweet products', value = paste0(percent_sweet * 100, "%"), icon = icon('ice-cream'), color = 'green')  
+    }
+    else if(percent_sweet < percent_sweet_ALL){
+      valueBox('Percentage purchases of sweet products', value = paste0(percent_sweet * 100, "%"), icon = icon('ice-cream'), color = 'red')
+    }
+    else{
+      valueBox('Percentage purchases of sweet products', value = paste0(percent_sweet * 100, "%"), icon = icon('ice-cream'), color = 'teal')
+    }
   })
   
   # Other purchases Info Box
   output$gold_prds <- renderValueBox({
     percent_other <- round(mean(data()$MntGoldProds / data()$MntPurchases, na.rm = TRUE), 3)
-    valueBox('Percentage purchases of other products', value = paste0(percent_other * 100, "%"), icon = icon('basket-shopping'))
+    percent_other_ALL <- round(mean(consumer_df$MntGoldProds / consumer_df$MntPurchases, na.rm = TRUE), 3)
+    if (percent_other > percent_other_ALL){
+      valueBox('Percentage purchases of other products', value = paste0(percent_other * 100, "%"), icon = icon('basket-shopping'), color = 'green')
+          }
+    else if(percent_other < percent_other_ALL){
+      valueBox('Percentage purchases of other products', value = paste0(percent_other * 100, "%"), icon = icon('basket-shopping'), color = 'red')
+          }
+    else{
+      valueBox('Percentage purchases of other products', value = paste0(percent_other * 100, "%"), icon = icon('basket-shopping'), color = 'teal')
+          }
   })
   
 
@@ -186,3 +226,8 @@ ui <- dashboardPage(header, sidebar, body)
 
 # Run the application ----------------------------------------------
 shinyApp(ui = ui, server = server)
+
+
+
+# Notes:
+I shouldn present sum data for the average consumer
