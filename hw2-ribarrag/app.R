@@ -30,7 +30,7 @@ consumer_df <- consumer_df %>%
 consumer_df[, c('Month', "Dt_Customer")]
 
 # Avoid plotly issues ----------------------------------------------
-# pdf(NULL)
+pdf(NULL)
 
 
 
@@ -84,20 +84,18 @@ body <-  dashboardBody(tabItems(
   
   tabItem("Channels",
           fluidRow(
-            valueBoxOutput("store_box", width = 3), 
-            valueBoxOutput("web_box", width = 3), 
-            valueBoxOutput("catalogue_box", width = 3)
+            valueBoxOutput("store_box", width = 4), 
+            valueBoxOutput("web_box", width = 4), 
+            valueBoxOutput("catalog_box", width = 4)
           ),
           
           fluidRow(
-            box(plotOutput('sales_channel'), width = 10)
+            box(plotOutput('sales_channel'), width = 12)
             # box(plotOutput('first_plot'), width = 10, align = 'center')
           ),
   )
 )
 ) 
-
-
 
 
 server <- function(input, output){
@@ -120,30 +118,31 @@ server <- function(input, output){
   
   # Income Info Box
   output$income_box <- renderInfoBox({
-    mean_income <- round(mean(data()$Income), 0)
-    infoBox("Average Income of customers", value = mean_income, subtitle = paste(nrow(data()), "customers"), icon = icon("sack-dollar"), color = "green")
+    mean_income <- round(mean(data()$Income), 2)
+    infoBox("Average Income of customers", value = paste('$', formatC(mean_income, big.mark = ',', digits = 2 ,format ='f')), subtitle = paste(nrow(data()), "customers"), icon = icon("sack-dollar"), color = "green")
   })
   
   # Store purchases Info Box
   output$store_box <- renderValueBox({
     mean_store <- round(mean(data()$NumStorePurchases / data()$TotalPurchases, na.rm = TRUE), 3)
-    valueBox('Percentage purchases made in store', value = paste0(mean_store * 100, "%"))
+    valueBox('Percentage purchases made in STORE', value = paste0(mean_store * 100, "%"))
   })
   
   # Web purchases Info Box
   output$web_box <- renderValueBox({
     mean_web <- round(mean(data()$NumWebPurchases / data()$TotalPurchases, na.rm = TRUE), 3)
-    valueBox('Percentage purchases made online', value = paste0(mean_web * 100, "%"))
+    valueBox('Percentage purchases made ONLINE', value = paste0(mean_web * 100, "%"))
   })
   
-  # Catalogue purchases Info Box
-  output$catalogue_box <- renderValueBox({
-    mean_catalogue <- round(mean(data()$NumCatalogPurchases / data()$TotalPurchases, na.rm = TRUE), 3)
-    valueBox('Percentage purchases made via catalogue', value = paste0(mean_catalogue * 100, "%"))
+  # Catalog purchases Info Box
+  output$catalog_box <- renderValueBox({
+    mean_catalog <- round(mean(data()$NumCatalogPurchases / data()$TotalPurchases, na.rm = TRUE), 3)
+    valueBox('Percentage purchases made via CATALOG', value = paste0(mean_catalog * 100, "%"))
   })
   
   # Meat purchases Info Box
   output$meat_prds <- renderValueBox({
+    # Getting rid of the missing values, otherwise, problems
     percent_meat <- round(mean(data()$MntMeatProducts / data()$MntPurchases, na.rm = TRUE), 3) %>% replace(is.na(.), 0)
     # percent_meat <- max(!is.na(percent_meat_a), percent_meat_a)
     percent_meat_ALL <- round(mean(consumer_df$MntMeatProducts / consumer_df$MntPurchases, na.rm = TRUE), 3)
@@ -163,6 +162,7 @@ server <- function(input, output){
   
   # Fish purchases Info Box
   output$fish_prds <- renderValueBox({
+    # Getting rid of the missing values, otherwise, problems
     percent_fish <- round(mean(data()$MntFishProducts / data()$MntPurchases, na.rm = TRUE), 3) %>% replace(is.na(.), 0)
     # percent_fish <- max(!is.na(percent_fish_a), percent_fish_a)
     percent_fish_ALL <- round(mean(consumer_df$MntFishProducts / consumer_df$MntPurchases, na.rm = TRUE), 3)
@@ -179,6 +179,7 @@ server <- function(input, output){
   
   # Fruits purchases Info Box
   output$fruit_prds <- renderValueBox({
+    # Getting rid of the missing values, otherwise, problems
     percent_fruit <- round(mean(data()$MntFruits / data()$MntPurchases, na.rm = TRUE), 3) %>% replace(is.na(.), 0)
     # percent_fruit <- max(!is.na(percent_fruit_a), percent_fruit_a)
     percent_fruit_ALL <- round(mean(consumer_df$MntFruits / consumer_df$MntPurchases, na.rm = TRUE), 3)
@@ -195,6 +196,7 @@ server <- function(input, output){
   
   # Wine purchases Info Box
   output$wine_prds <- renderValueBox({
+    # Getting rid of the missing values, otherwise, problems
     percent_wine <- round(mean(data()$MntWines / data()$MntPurchases, na.rm = TRUE), 3) %>% replace(is.na(.), 0)
     # percent_wine <- max(!is.na(percent_wine_a), percent_wine_a)
     percent_wine_ALL <- round(mean(consumer_df$MntWines / consumer_df$MntPurchases, na.rm = TRUE), 3)
@@ -211,6 +213,7 @@ server <- function(input, output){
   
   # Sweet purchases Info Box
   output$sweet_prds <- renderValueBox({
+    # Getting rid of the missing values, otherwise, problems
     percent_sweet <- round(mean(data()$MntSweetProducts / data()$MntPurchases, na.rm = TRUE), 3) %>% replace(is.na(.), 0)
     # percent_sweet <- max(!is.na(percent_sweet_a), percent_sweet_a)
     percent_sweet_ALL <- round(mean(consumer_df$MntSweetProducts / consumer_df$MntPurchases, na.rm = TRUE), 3)
@@ -227,6 +230,7 @@ server <- function(input, output){
   
   # Other purchases Info Box
   output$gold_prds <- renderValueBox({
+    # Getting rid of the missing values, otherwise, problems
     percent_other <- round(mean(data()$MntGoldProds / data()$MntPurchases, na.rm = TRUE), 3) %>% replace(is.na(.), 0)
     # percent_other <- max(!is.na(percent_other_a), percent_other_a)
     percent_other_ALL <- round(mean(consumer_df$MntGoldProds / consumer_df$MntPurchases, na.rm = TRUE), 3)
@@ -262,9 +266,11 @@ server <- function(input, output){
   
   # Bar chart for each sales channel
   output$sales_channel <- renderPlot({
+    # requiring this: otherwise graph crashes when user's selection is empty set
     req(melted_sale_channel_data()$variable)
     ggplot(data = melted_sale_channel_data(), aes(x = Month, y = value, fill = variable)) + 
-      geom_bar(stat = "identity") + facet_wrap(~ variable)
+      geom_bar(stat = "identity", show.legend = FALSE) + facet_wrap(facets = ~ fct_reorder(variable, -value)) +
+      scale_x_continuous(breaks=seq(1,12,1))
   })
 }
 
@@ -272,8 +278,3 @@ ui <- dashboardPage(header, sidebar, body)
 
 # Run the application ----------------------------------------------
 shinyApp(ui = ui, server = server)
-
-
-
-# Notes:
-# I shouldn present sum data for the average consumer

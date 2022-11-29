@@ -94,11 +94,12 @@ ggplot(consumer_df, aes(x = month(as.POSIXlt(Dt_Customer, format="%d-%m-%Y")))) 
 grid.arrange(plot1, plot2, ncol=2)
 
 library(reshape2)
-melted_sale_channel <- melt(consumer_df[, c('Month', 'NumWebPurchases', 'NumStorePurchases', 'NumCatalogPurchases')], id = 'Month')
+melted_sale_channel <- melt(consumer_df[, c('Month', 'NumStorePurchases', 'NumWebPurchases', 'NumCatalogPurchases')], id = 'Month')
 ggplot(data = melted_data, aes(x = Month, y = value, fill = variable)) + 
-  geom_bar(stat = "identity") + facet_wrap(~ variable) #+ scale_x_continuous(breaks=seq(1,12,2))
-melted_sale_channel$variable
-
+  geom_bar(stat = "identity") + facet_wrap(facets = ~ fct_reorder(variable, -value)) + scale_x_continuous(breaks=seq(1,12,1))
+                                           
+                                           
+melted_sale_channel
 
 ggplot(consumer_df, aes( y  = MntPurchases ,  x = Month)) + 
   geom_bar(position="stack", stat="identity")
