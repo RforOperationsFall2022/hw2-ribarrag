@@ -276,6 +276,7 @@ server <- function(input, output){
   
   # Stacked bar chart
   output$stackedbar_purchases<- renderPlot({
+    req(melted_sale_amount()$variable)
     ggplot(data = melted_sale_amount(), aes(x = Month, fill = variable)) + 
       geom_bar(stat = "count") + 
       scale_x_continuous(breaks=seq(1,12,1))
