@@ -4,6 +4,7 @@ library(readr)
 library(plotly)
 library(shinydashboard)
 library(dplyr)
+library(tidyverse)
 
 
 # load data
@@ -46,14 +47,19 @@ sidebar <- dashboardSidebar(
     checkboxGroupInput(inputId = "select_education",
                        label = "Select education level to include:",
                        choices = c('2n Cycle', 'Basic', 'Graduation', 'Master', 'PhD' ),
-                       selected = c('2n Cycle', 'Basic', 'Graduation', 'Master', 'PhD' ))
+                       selected = c('2n Cycle', 'Basic', 'Graduation', 'Master', 'PhD' )),
+    
+    checkboxGroupInput(inputId = "select_children",
+                       label = "Select No. of Children:",
+                       choices = c(levels(as_factor(consumer_df$Children))),
+                       selected = c(levels(as_factor(consumer_df$Children))))
   )
 )
 
 body <-  dashboardBody(tabItems(
   tabItem("Products",
           fluidRow(
-            infoBoxOutput("income_box", width = 10),
+            infoBoxOutput("income_box", width = 10)
           ),
           fluidRow(
             valueBoxOutput("meat_prds", width = 3), 
@@ -66,7 +72,10 @@ body <-  dashboardBody(tabItems(
             valueBoxOutput("gold_prds", width = 3)
           ),
           fluidRow(
-            box(plotOutput('hist_income'), width = 10, align = 'center')
+            tabBox(title = "Histogram Income",
+                   width = 12,
+                   tabPanel("Income", plotOutput('hist_income'), width = 10, align = 'center'))
+                   # tabPanel("Height", plotlyOutput("plot_height")))
           )
   ),
   
@@ -98,7 +107,9 @@ server <- function(input, output){
       # Slider Filter ----------------------------------------------
     filter(Age >= input$ageSelect[1] & Age <= input$ageSelect[2]) %>%
       
-      filter(Education %in% input$select_education)
+      filter(Education %in% input$select_education) %>%
+    
+    filter(Children %in% input$select_children)
     
     
     # Homeworld Filter ----------------------------------------------
@@ -146,7 +157,7 @@ server <- function(input, output){
     else if (percent_meat < percent_meat_ALL){
       valueBox('Percentage purchases of meat products', value = paste0(percent_meat * 100, "%"), icon = icon('drumstick-bite'), color = 'red')
     }
-    # if they are both the same, then color ir blue
+    # if they are both the same, then color is blue
     else {
       valueBox('Percentage purchases of meat products', value = paste0(percent_meat * 100, "%"), icon = icon('drumstick-bite'), color = 'teal')
     }
@@ -236,9 +247,9 @@ server <- function(input, output){
 
   output$hist_income <- renderPlot({
     ggplot(data(), aes(Income)) + 
-    geom_histogram(bins = 40) +
+    geom_histogram(bins = 50) +
       # I dont want the x axis to be changing when the user makes selections, so I set the limit to the max possible in the complete dataset
-      scale_x_continuous(limits = c(0, max(consumer_df$Income)))
+      coord_cartesian(xlim = c(0, max(consumer_df$Income)))
   })
   # Plot 1
   output$first_plot <- renderPlot({

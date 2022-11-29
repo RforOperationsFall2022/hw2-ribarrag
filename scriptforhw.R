@@ -21,6 +21,9 @@ consumer_df <- consumer_df %>%
   mutate(MntPurchases = rowSums(across(c(MntWines, MntFruits, MntMeatProducts, MntFishProducts, MntSweetProducts, MntGoldProds))))
 
 
+sum(is.na(consumer_df$Income))
+
+
 table(consumer_df$Education)
 
 consumer_df$MntPurchases
@@ -41,6 +44,13 @@ ggplot(consumer_df, aes(Income)) +
 
 colnames(consumer_df)
 mpg$cty
+
+max(consumer_df$Children)
+min(consumer_df$Children)
+
+levels(as_factor(consumer_df$Children))
+
+
 
 # agregado <- 
 aggregate(mpg$cty, by=list(mpg$manufacturer), FUN=mean)
@@ -149,4 +159,6 @@ a %>% replace(is.na(.), 0)
 a
 
 max(consumer_df$Income)
+
+consumer_df$Income
 
