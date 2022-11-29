@@ -6,7 +6,7 @@ library(shinydashboard)
 library(dplyr)
 library(tidyverse)
 library(reshape2)
-
+library(lubridate)
 
 # load data
 consumer_df <- read_delim("consumer_dataset.csv", 

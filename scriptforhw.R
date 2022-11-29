@@ -97,8 +97,24 @@ library(reshape2)
 melted_sale_channel <- melt(consumer_df[, c('Month', 'NumStorePurchases', 'NumWebPurchases', 'NumCatalogPurchases')], id = 'Month')
 ggplot(data = melted_data, aes(x = Month, y = value, fill = variable)) + 
   geom_bar(stat = "identity") + facet_wrap(facets = ~ fct_reorder(variable, -value)) + scale_x_continuous(breaks=seq(1,12,1))
-                                           
-                                           
+                        
+melted_sale_amount <- melt(consumer_df[, c('Month', "MntWines", "MntFruits", 
+                                           "MntMeatProducts", "MntFishProducts", 
+                                           "MntSweetProducts", "MntGoldProds")], id = 'Month')
+
+max(consumer_df$Month)
+
+ggplot(data = melted_sale_amount, aes(x = Month, fill = variable)) + 
+  geom_bar(stat = "count") + scale_x_continuous(breaks=seq(1,12,1))
+  
+ggplot(data = melted_data, aes(x = Month, y = value, fill = variable)) + 
+  geom_bar(stat = "identity") + facet_wrap(facets = ~ fct_reorder(variable, -value))
+
+ggplot(melted_sale_amount, aes(x = Month, y = value, fill = variable)) +
+  geom_area()
+
+colnames(consumer_df)
+                                   
 melted_sale_channel
 
 ggplot(consumer_df, aes( y  = MntPurchases ,  x = Month)) + 

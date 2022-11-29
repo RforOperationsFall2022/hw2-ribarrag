@@ -6,6 +6,7 @@ library(shinydashboard)
 library(dplyr)
 library(tidyverse)
 library(reshape2)
+library(lubridate)
 
 
 # load data
@@ -75,9 +76,10 @@ body <-  dashboardBody(tabItems(
             valueBoxOutput("gold_prds", width = 3)
           ),
           fluidRow(
-            tabBox(title = "Histogram Income",
-                   width = 12,
-                   tabPanel("Income", plotOutput('hist_income'), width = 10, align = 'center'))
+            tabBox(title = "Your daily insights for purchases and consumer information",
+                   width = 10,
+                   tabPanel("Income", plotOutput('hist_income'), align = 'center'), 
+                   tabPanel("Purchases", plotOutput('stackedbar_purchases'), align = 'center'))
                    # tabPanel("Height", plotlyOutput("plot_height")))
           )
   ),
@@ -263,6 +265,22 @@ server <- function(input, output){
     data()[, c('Month', 'NumWebPurchases', 'NumStorePurchases', 'NumCatalogPurchases')] %>%
       melt(id = 'Month')
   })
+  
+  melted_sale_amount <- reactive({
+    data()[, c('Month', "MntWines", "MntFruits", 
+               "MntMeatProducts", "MntFishProducts", 
+               "MntSweetProducts", "MntGoldProds")] %>%
+      melt(id = 'Month')
+  })
+  
+  
+  # Stacked bar chart
+  output$stackedbar_purchases<- renderPlot({
+    ggplot(data = melted_sale_amount(), aes(x = Month, fill = variable)) + 
+      geom_bar(stat = "count") + 
+      scale_x_continuous(breaks=seq(1,12,1))
+  })
+  
   
   # Bar chart for each sales channel
   output$sales_channel <- renderPlot({
