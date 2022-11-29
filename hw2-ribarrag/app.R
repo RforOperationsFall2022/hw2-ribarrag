@@ -65,6 +65,9 @@ body <-  dashboardBody(tabItems(
             valueBoxOutput("sweet_prds", width = 3), 
             valueBoxOutput("gold_prds", width = 3)
           ),
+          fluidRow(
+            box(plotOutput('hist_income'), width = 10, align = 'center')
+          )
   ),
   
   tabItem("Channels",
@@ -229,8 +232,14 @@ server <- function(input, output){
     }
   })
   
+  # Histogram income
   
-  
+  output$hist_income <- renderPlot({
+    ggplot(data(), aes(Income)) + 
+      geom_histogram(bins = 40) +
+      # I dont want the x axis to be changing when the user makes selections, so I set the limit to the max possible in the complete dataset
+      scale_x_continuous(limits = c(0, max(consumer_df$Income)))
+  })
   # Plot 1
   output$first_plot <- renderPlot({
     plot(consumer_df$Income, consumer_df$MntMeatProducts)

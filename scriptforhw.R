@@ -36,11 +36,57 @@ colnames(consumer_df)
 ggplot(consumer_df, aes(TotalPurchases)) + 
   geom_histogram()
 
+ggplot(consumer_df, aes(Income)) + 
+  geom_histogram(bins = 40)
 
-  geom_histogram(aes(fill = cut), binwidth = 0.1, position = "fill",
-                 na.rm = TRUE) +
+colnames(consumer_df)
+mpg$cty
+
+# agregado <- 
+aggregate(mpg$cty, by=list(mpg$manufacturer), FUN=mean)
+
+mean(consumer_df$MntFishProducts)
+
+colMeans(consumer_df[, c(MntWines, MntFruits, MntMeatProducts, MntFishProducts, MntSweetProducts, MntGoldProds)])
+
+colMeans(consumer_df[, 10:15])
+
+
+ggplot(consumer_df, aes(MntFishProducts)) +
+  geom_density(na.rm = TRUE)  
+  xlim(58, 68) + 
   theme(legend.position = "none")
 
+# g <- ggplot(consumer_df, aes(y = MntWines, x = Income, colour = Children))
+g <- ggplot(consumer_df, aes(y = MntWines, x = MntFruits, colour = Age))
+g + geom_count(show.legend=F, alpha = 0.6) +
+  labs(subtitle="mpg: city vs highway mileage", 
+       y="hwy", 
+       x="cty", 
+       title="Counts Plot")
+
+  xlim(58, 68) + 
+  theme(legend.position = "none")
+
+library(plotly)
+  
+medias <- colMeans(consumer_df[, 10:15])
+colnames(medias)
+
+ggplot(medias, aes(x=make, y=mileage)) + 
+  geom_point(col="tomato2", size=3) +   # Draw points
+  geom_segment(aes(x=make, 
+                   xend=make, 
+                   y=min(mileage), 
+                   yend=max(mileage)), 
+               linetype="dashed", 
+               size=0.1) +   # Draw dashed lines
+  labs(title="Dot Plot", 
+       subtitle="Make Vs Avg. Mileage", 
+       caption="source: mpg") +  
+  coord_flip()
+
+cty_mpg
 
 ?fluidRow
 mean(consumer_df$NumStorePurchases)
@@ -84,6 +130,7 @@ which(consumer_df$Year_Birth == min(consumer_df$Year_Birth))
 consumer_df[229, ]
 
 
+
 summary(consumer_df)
 which(max(consumer_df$Income))
 
@@ -100,3 +147,6 @@ is.na(a)
 
 a %>% replace(is.na(.), 0)
 a
+
+max(consumer_df$Income)
+
