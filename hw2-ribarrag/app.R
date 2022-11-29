@@ -5,6 +5,7 @@ library(plotly)
 library(shinydashboard)
 library(dplyr)
 library(tidyverse)
+library(reshape2)
 
 
 # load data
@@ -24,7 +25,9 @@ consumer_df <- consumer_df %>%
   mutate(TotalPurchases = rowSums(across(c(NumStorePurchases,NumWebPurchases,NumCatalogPurchases))))
 consumer_df <- consumer_df %>%
   mutate(MntPurchases = rowSums(across(c(MntWines, MntFruits, MntMeatProducts, MntFishProducts, MntSweetProducts, MntGoldProds))))
-
+consumer_df <- consumer_df %>%
+  mutate(Month = month(as.POSIXlt(consumer_df$Dt_Customer, format="%d-%m-%Y")))
+consumer_df[, c('Month', "Dt_Customer")]
 
 # Avoid plotly issues ----------------------------------------------
 # pdf(NULL)
@@ -32,7 +35,7 @@ consumer_df <- consumer_df %>%
 
 
 header <- dashboardHeader(
-  title = 'My dashboard for HW3')
+  title = 'HW2 Dashboard')
 
 sidebar <- dashboardSidebar(
   sidebarMenu(
@@ -87,7 +90,8 @@ body <-  dashboardBody(tabItems(
           ),
           
           fluidRow(
-            box(plotOutput('first_plot'), width = 10, align = 'center')
+            box(plotOutput('sales_channel'), width = 10)
+            # box(plotOutput('first_plot'), width = 10, align = 'center')
           ),
   )
 )
@@ -101,7 +105,7 @@ server <- function(input, output){
   # Reactivity
   
   data <- reactive({
-    req(input$select_education, input$ageSelect[1], input$ageSelect[2])
+    req(input$select_education, input$ageSelect[1], input$ageSelect[2], input$select_children)
     filtered_data <- consumer_df %>%
       
       # Slider Filter ----------------------------------------------
@@ -246,8 +250,21 @@ server <- function(input, output){
       coord_cartesian(xlim = c(0, max(consumer_df$Income)))
   })
   # Plot 1
-  output$first_plot <- renderPlot({
-    plot(consumer_df$Income, consumer_df$MntMeatProducts)
+  # output$first_plot <- renderPlot({
+  #   plot(consumer_df$Income, consumer_df$MntMeatProducts)
+  # })
+  
+  # Lets first melt the data for the plot
+  melted_sale_channel_data <- reactive({
+    data()[, c('Month', 'NumWebPurchases', 'NumStorePurchases', 'NumCatalogPurchases')] %>%
+      melt(id = 'Month')
+  })
+  
+  # Bar chart for each sales channel
+  output$sales_channel <- renderPlot({
+    req(melted_sale_channel_data()$variable)
+    ggplot(data = melted_sale_channel_data(), aes(x = Month, y = value, fill = variable)) + 
+      geom_bar(stat = "identity") + facet_wrap(~ variable)
   })
 }
 

@@ -1,6 +1,7 @@
 library(readr)
 library(ggplot2)
 library(dplyr)
+library(lubridate)
 consumer_df <- read_delim("consumer_dataset.csv", 
                           delim = "\t", escape_double = FALSE, 
                           trim_ws = TRUE)
@@ -19,7 +20,9 @@ consumer_df <- consumer_df %>%
   mutate(TotalPurchases = rowSums(across(c(NumStorePurchases,NumWebPurchases,NumCatalogPurchases))))
 consumer_df <- consumer_df %>%
   mutate(MntPurchases = rowSums(across(c(MntWines, MntFruits, MntMeatProducts, MntFishProducts, MntSweetProducts, MntGoldProds))))
-
+consumer_df <- consumer_df %>%
+  mutate(Month = month(as.POSIXlt(consumer_df$Dt_Customer, format="%d-%m-%Y")))
+consumer_df[, c('Month', "Dt_Customer")]
 
 sum(is.na(consumer_df$Income))
 
@@ -68,12 +71,45 @@ ggplot(consumer_df, aes(MntFishProducts)) +
   theme(legend.position = "none")
 
 # g <- ggplot(consumer_df, aes(y = MntWines, x = Income, colour = Children))
-g <- ggplot(consumer_df, aes(y = MntWines, x = MntFruits, colour = Age))
+g <- ggplot(consumer_df, aes(y = NumWebPurchases, x = NumStorePurchases, colour = NumCatalogPurchases))
 g + geom_count(show.legend=F, alpha = 0.6) +
   labs(subtitle="mpg: city vs highway mileage", 
        y="hwy", 
        x="cty", 
        title="Counts Plot")
+
+specie <- c(rep("sorgho" , 3) , rep("poacee" , 3) , rep("banana" , 3) , rep("triticum" , 3) )
+condition <- rep(c("normal" , "stress" , "Nitrogen") , 4)
+value <- abs(rnorm(12 , 0 , 15))
+data <- data.frame(specie,condition,value)
+
+data
+ggplot(consumer_df, aes( y  = NumStorePurchases ,  x = month(as.POSIXlt(Dt_Customer, format="%d-%m-%Y")))) + 
+  geom_bar(position="stack", stat="identity")
+ggplot(consumer_df, aes( y = NumWebPurchases ,  x = month(as.POSIXlt(Dt_Customer, format="%d-%m-%Y")))) + 
+  geom_bar(position="stack", stat="identity")
+ggplot(consumer_df, aes(x = month(as.POSIXlt(Dt_Customer, format="%d-%m-%Y")))) + 
+  geom_bar(position="stack", stat="count")
+
+grid.arrange(plot1, plot2, ncol=2)
+
+library(reshape2)
+melted_sale_channel <- melt(consumer_df[, c('Month', 'NumWebPurchases', 'NumStorePurchases', 'NumCatalogPurchases')], id = 'Month')
+ggplot(data = melted_data, aes(x = Month, y = value, fill = variable)) + 
+  geom_bar(stat = "identity") + facet_wrap(~ variable) #+ scale_x_continuous(breaks=seq(1,12,2))
+melted_sale_channel$variable
+
+
+ggplot(consumer_df, aes( y  = MntPurchases ,  x = Month)) + 
+  geom_bar(position="stack", stat="identity")
+
+# hacer un warp!! con store purcahses, wbpourchases, catalgouepurchases!
+
+month(as.POSIXlt(consumer_df$Dt_Customer, format="%d-%m-%Y"))
+
+
+
+colnames(consumer_df)
 
   xlim(58, 68) + 
   theme(legend.position = "none")
