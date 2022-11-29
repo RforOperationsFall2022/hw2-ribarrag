@@ -21,6 +21,8 @@ consumer_df <- consumer_df %>%
   mutate(MntPurchases = rowSums(across(c(MntWines, MntFruits, MntMeatProducts, MntFishProducts, MntSweetProducts, MntGoldProds))))
 
 
+table(consumer_df$Education)
+
 consumer_df$MntPurchases
 
 ggplot()
@@ -86,4 +88,15 @@ summary(consumer_df)
 which(max(consumer_df$Income))
 
 
+a <- NA
+a
+b <- NULL
+b
+max(is.na(a), a)
+max(is.na(a), 0.0001)
+max(TRUE, a)
+b > 9
+is.na(a)
 
+a %>% replace(is.na(.), 0)
+a

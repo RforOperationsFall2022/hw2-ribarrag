@@ -31,19 +31,24 @@ consumer_df <- consumer_df %>%
 
 
 header <- dashboardHeader(
-    title = 'My dashboard for HW3')
-  
+  title = 'My dashboard for HW3')
+
 sidebar <- dashboardSidebar(
-    sidebarMenu(
-      menuItem('Products sold', tabName = 'Products', icon = icon('tree')), 
-      menuItem('Sales channels', tabName = 'Channels', icon = icon('truck')),
-      sliderInput("ageSelect",
-                  "Select consumer's age range:",
-                  min = min(consumer_df$Age), max = max(consumer_df$Age),
-                  value = c(min(consumer_df$Age), max(consumer_df$Age)),
-                  step = 1)
-    )
+  sidebarMenu(
+    menuItem('Products sold', tabName = 'Products', icon = icon('tree')), 
+    menuItem('Sales channels', tabName = 'Channels', icon = icon('truck')),
+    sliderInput("ageSelect",
+                "Select consumer's age range:",
+                min = min(consumer_df$Age), max = max(consumer_df$Age),
+                value = c(min(consumer_df$Age), max(consumer_df$Age)),
+                step = 1),
+    
+    checkboxGroupInput(inputId = "select_education",
+                       label = "Select education level to include:",
+                       choices = c('2n Cycle', 'Basic', 'Graduation', 'Master', 'PhD' ),
+                       selected = c('2n Cycle', 'Basic', 'Graduation', 'Master', 'PhD' ))
   )
+)
 
 body <-  dashboardBody(tabItems(
   tabItem("Products",
@@ -60,7 +65,7 @@ body <-  dashboardBody(tabItems(
             valueBoxOutput("sweet_prds", width = 3), 
             valueBoxOutput("gold_prds", width = 3)
           ),
-    ),
+  ),
   
   tabItem("Channels",
           fluidRow(
@@ -72,10 +77,10 @@ body <-  dashboardBody(tabItems(
           fluidRow(
             box(plotOutput('first_plot'), width = 10, align = 'center')
           ),
-    )
   )
+)
 ) 
-  
+
 
 
 
@@ -84,10 +89,14 @@ server <- function(input, output){
   # Reactivity
   
   data <- reactive({
+    req(input$select_education, input$ageSelect[1], input$ageSelect[2])
     filtered_data <- consumer_df %>%
       
       # Slider Filter ----------------------------------------------
-    filter(Age >= input$ageSelect[1] & Age <= input$ageSelect[2])
+    filter(Age >= input$ageSelect[1] & Age <= input$ageSelect[2]) %>%
+      
+      filter(Education %in% input$select_education)
+    
     
     # Homeworld Filter ----------------------------------------------
     # if (length(input$worldSelect) > 0 ) {
@@ -123,11 +132,12 @@ server <- function(input, output){
   
   # Meat purchases Info Box
   output$meat_prds <- renderValueBox({
-    percent_meat <- round(mean(data()$MntMeatProducts / data()$MntPurchases, na.rm = TRUE), 3)
+    percent_meat <- round(mean(data()$MntMeatProducts / data()$MntPurchases, na.rm = TRUE), 3) %>% replace(is.na(.), 0)
+    # percent_meat <- max(!is.na(percent_meat_a), percent_meat_a)
     percent_meat_ALL <- round(mean(consumer_df$MntMeatProducts / consumer_df$MntPurchases, na.rm = TRUE), 3)
     # if the mean purchases of meat for the subset is greater than the average meat purchases for the whole data, then green color the box
     if (percent_meat > percent_meat_ALL){
-    valueBox('Percentage purchases of meat products', value = paste0(percent_meat * 100, "%"), icon = icon('drumstick-bite'), color = 'green')
+      valueBox('Percentage purchases of meat products', value = paste0(percent_meat * 100, "%"), icon = icon('drumstick-bite'), color = 'green')
     }
     # if the mean purchases of meat for the subset is lower than the average meat purchases for the whole data, then red color the box
     else if (percent_meat < percent_meat_ALL){
@@ -141,7 +151,8 @@ server <- function(input, output){
   
   # Fish purchases Info Box
   output$fish_prds <- renderValueBox({
-    percent_fish <- round(mean(data()$MntFishProducts / data()$MntPurchases, na.rm = TRUE), 3)
+    percent_fish <- round(mean(data()$MntFishProducts / data()$MntPurchases, na.rm = TRUE), 3) %>% replace(is.na(.), 0)
+    # percent_fish <- max(!is.na(percent_fish_a), percent_fish_a)
     percent_fish_ALL <- round(mean(consumer_df$MntFishProducts / consumer_df$MntPurchases, na.rm = TRUE), 3)
     if (percent_fish > percent_fish_ALL){
       valueBox('Percentage purchases of fish products', value = paste0(percent_fish * 100, "%"), icon = icon('fish'), color = 'green')
@@ -156,10 +167,11 @@ server <- function(input, output){
   
   # Fruits purchases Info Box
   output$fruit_prds <- renderValueBox({
-    percent_fruit <- round(mean(data()$MntFruits / data()$MntPurchases, na.rm = TRUE), 3)
+    percent_fruit <- round(mean(data()$MntFruits / data()$MntPurchases, na.rm = TRUE), 3) %>% replace(is.na(.), 0)
+    # percent_fruit <- max(!is.na(percent_fruit_a), percent_fruit_a)
     percent_fruit_ALL <- round(mean(consumer_df$MntFruits / consumer_df$MntPurchases, na.rm = TRUE), 3)
     if (percent_fruit > percent_fruit_ALL){
-    valueBox('Percentage purchases of fruits products', value = paste0(percent_fruit * 100, "%"), icon = icon('apple'), color = 'green')
+      valueBox('Percentage purchases of fruits products', value = paste0(percent_fruit * 100, "%"), icon = icon('apple'), color = 'green')
     }
     else if (percent_fruit < percent_fruit_ALL){
       valueBox('Percentage purchases of fruits products', value = paste0(percent_fruit * 100, "%"), icon = icon('apple'), color = 'red')
@@ -168,10 +180,11 @@ server <- function(input, output){
       valueBox('Percentage purchases of fruits products', value = paste0(percent_fruit * 100, "%"), icon = icon('apple'), color = 'teal')
     }
   })
-
+  
   # Wine purchases Info Box
   output$wine_prds <- renderValueBox({
-    percent_wine <- round(mean(data()$MntWines / data()$MntPurchases, na.rm = TRUE), 3)
+    percent_wine <- round(mean(data()$MntWines / data()$MntPurchases, na.rm = TRUE), 3) %>% replace(is.na(.), 0)
+    # percent_wine <- max(!is.na(percent_wine_a), percent_wine_a)
     percent_wine_ALL <- round(mean(consumer_df$MntWines / consumer_df$MntPurchases, na.rm = TRUE), 3)
     if (percent_wine > percent_wine_ALL){
       valueBox('Percentage purchases of wine products', value = paste0(percent_wine * 100, "%"), icon = icon('wine-glass'), color = 'green')  
@@ -186,7 +199,8 @@ server <- function(input, output){
   
   # Sweet purchases Info Box
   output$sweet_prds <- renderValueBox({
-    percent_sweet <- round(mean(data()$MntSweetProducts / data()$MntPurchases, na.rm = TRUE), 3)
+    percent_sweet <- round(mean(data()$MntSweetProducts / data()$MntPurchases, na.rm = TRUE), 3) %>% replace(is.na(.), 0)
+    # percent_sweet <- max(!is.na(percent_sweet_a), percent_sweet_a)
     percent_sweet_ALL <- round(mean(consumer_df$MntSweetProducts / consumer_df$MntPurchases, na.rm = TRUE), 3)
     if (percent_sweet > percent_sweet_ALL){
       valueBox('Percentage purchases of sweet products', value = paste0(percent_sweet * 100, "%"), icon = icon('ice-cream'), color = 'green')  
@@ -201,20 +215,21 @@ server <- function(input, output){
   
   # Other purchases Info Box
   output$gold_prds <- renderValueBox({
-    percent_other <- round(mean(data()$MntGoldProds / data()$MntPurchases, na.rm = TRUE), 3)
+    percent_other <- round(mean(data()$MntGoldProds / data()$MntPurchases, na.rm = TRUE), 3) %>% replace(is.na(.), 0)
+    # percent_other <- max(!is.na(percent_other_a), percent_other_a)
     percent_other_ALL <- round(mean(consumer_df$MntGoldProds / consumer_df$MntPurchases, na.rm = TRUE), 3)
     if (percent_other > percent_other_ALL){
       valueBox('Percentage purchases of other products', value = paste0(percent_other * 100, "%"), icon = icon('basket-shopping'), color = 'green')
-          }
+    }
     else if(percent_other < percent_other_ALL){
       valueBox('Percentage purchases of other products', value = paste0(percent_other * 100, "%"), icon = icon('basket-shopping'), color = 'red')
-          }
+    }
     else{
       valueBox('Percentage purchases of other products', value = paste0(percent_other * 100, "%"), icon = icon('basket-shopping'), color = 'teal')
-          }
+    }
   })
   
-
+  
   
   # Plot 1
   output$first_plot <- renderPlot({
@@ -230,4 +245,4 @@ shinyApp(ui = ui, server = server)
 
 
 # Notes:
-I shouldn present sum data for the average consumer
+# I shouldn present sum data for the average consumer
