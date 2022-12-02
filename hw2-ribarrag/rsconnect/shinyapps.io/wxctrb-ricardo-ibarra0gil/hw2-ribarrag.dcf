@@ -1,0 +1,14 @@
+name: hw2-ribarrag
+title: hw2-ribarrag
+username:
+account: wxctrb-ricardo-ibarra0gil
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 7799664
+bundleId: 6583918
+url: https://wxctrb-ricardo-ibarra0gil.shinyapps.io/hw2-ribarrag/
+when: 1670018738.89471
+lastSyncTime: 1670018738.89473
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: app_draft.R
