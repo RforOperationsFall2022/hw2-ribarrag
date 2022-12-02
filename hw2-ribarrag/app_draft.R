@@ -7,7 +7,8 @@ library(dplyr)
 library(tidyverse)
 library(reshape2)
 library(lubridate)
-
+library(DT)
+library(shinyWidgets)
 
 # load data
 consumer_df <- read_delim("consumer_dataset.csv", 
@@ -18,7 +19,9 @@ consumer_df <- read_delim("consumer_dataset.csv",
 consumer_df <- na.omit(consumer_df)
 consumer_df <- consumer_df[-c(which(consumer_df$Income == max(consumer_df$Income)),which(consumer_df$Year_Birth <= 1900)), ]
 
-# Adjust dataset
+# Adjust dataset: create Age column, create Children as sum of kids and teens in the household, 
+# group 'uncommon' marital status categories into Other, create Total_Purchases and MntPurschases as the sum of 
+# items and amount bought by each customer, create the column Month
 consumer_df$Age = 2022 - consumer_df$Year_Birth
 consumer_df$Children = consumer_df$Kidhome + consumer_df$Teenhome
 consumer_df$Marital_Status[consumer_df$Marital_Status %in% c('Absurd', 'Alone', 'YOLO')] <- 'Other'
@@ -38,10 +41,12 @@ header <- dashboardHeader(
   title = 'HW2 Dashboard')
 
 sidebar <- dashboardSidebar(
+  # created three menuItems
   sidebarMenu(
     menuItem('Products sold', tabName = 'Products', icon = icon('scale-unbalanced-flip')), 
     menuItem('Sales channels', tabName = 'Channels', icon = icon('truck')),
     menuItem('Data table', tabName = 'Tables', icon = icon('table')),
+    # And then a slider, a checkbox and a Picker for user interaction with the data
     sliderInput("ageSelect",
                 "Select consumer's age range:",
                 min = min(consumer_df$Age), max = max(consumer_df$Age),
@@ -49,18 +54,23 @@ sidebar <- dashboardSidebar(
                 step = 1),
     
     checkboxGroupInput(inputId = "select_education",
-                       label = "Select education level to include:",
+                       label = "Include only customers with the following education level",
                        choices = c('2n Cycle', 'Basic', 'Graduation', 'Master', 'PhD' ),
                        selected = c('2n Cycle', 'Basic', 'Graduation', 'Master', 'PhD' )),
     
-    checkboxGroupInput(inputId = "select_children",
-                       label = "Select No. of Children:",
-                       choices = c(levels(as_factor(consumer_df$Children))),
-                       selected = c(levels(as_factor(consumer_df$Children))))
+    pickerInput(inputId = "select_children",
+                label = "Only include customers that have these many children:", 
+                # If in a new data set, there are customers with more children, the options will be updated
+                choices = c(levels(as_factor(consumer_df$Children))), 
+                options = list(`actions-box` = TRUE), 
+                multiple = T, 
+                selected = c(levels(as_factor(consumer_df$Children))))
   )
 )
 
 body <-  dashboardBody(tabItems(
+  # first tab contains information of sales by type of product
+  # one info box, six value boxes and a graph section
   tabItem("Products",
           fluidRow(
             infoBoxOutput("income_box", width = 10)
@@ -83,7 +93,7 @@ body <-  dashboardBody(tabItems(
                    # tabPanel("Height", plotlyOutput("plot_height")))
           )
   ),
-  
+  # second tab, channels, with info about sale channels, three valueboxes and a graph
   tabItem("Channels",
           fluidRow(
             valueBoxOutput("store_box", width = 4), 
@@ -95,6 +105,7 @@ body <-  dashboardBody(tabItems(
             box(title = 'These are sales by month per sale channel', plotlyOutput('sales_channel'), width = 12)
           ),
   ),
+  # third tab for the table
   tabItem("Tables", 
           fluidPage((
             box(title = 'The table', DT::dataTableOutput('table'), width = 12)
@@ -107,8 +118,7 @@ body <-  dashboardBody(tabItems(
 
 server <- function(input, output){
   
-  # Reactivity
-  
+  # Reactivity: filtering the data according to user's selections
   data <- reactive({
     req(input$select_education, input$ageSelect[1], input$ageSelect[2], input$select_children)
     filtered_data <- consumer_df %>%
@@ -122,13 +132,13 @@ server <- function(input, output){
     
     return(filtered_data)
   })
-  
+  # Creation of InfoBox (1) for the products tab --------------------------------
   # Income Info Box
   output$income_box <- renderInfoBox({
     mean_income <- round(mean(data()$Income), 2)
     infoBox("Average Income of customers", value = paste('$', formatC(mean_income, big.mark = ',', digits = 2 ,format ='f')), subtitle = paste(nrow(data()), "customers"), icon = icon("sack-dollar"), color = "green")
   })
-  
+  # Creation of Valueboxes (3) for the channel tab --------------------------------
   # Store purchases Info Box
   output$store_box <- renderValueBox({
     mean_store <- round(mean(data()$NumStorePurchases / data()$TotalPurchases, na.rm = TRUE), 3)
@@ -146,6 +156,9 @@ server <- function(input, output){
     mean_catalog <- round(mean(data()$NumCatalogPurchases / data()$TotalPurchases, na.rm = TRUE), 3)
     valueBox('Percentage purchases made via CATALOG', value = paste0(mean_catalog * 100, "%"))
   })
+  
+  # Creation of InfoBoxes (6) for the products tab --------------------------------
+  # These change of color depending if the subselection of the user has a vlue that is lower (turns red) or higher (turns) green than the total data set values
   
   # Meat purchases Info Box
   output$meat_prds <- renderValueBox({
@@ -252,11 +265,12 @@ server <- function(input, output){
     }
   })
   
-  # Histogram income
-
+  # Histogram income for Products tab
   output$hist_income <- renderPlotly({
     ggplot(data(), aes(Income)) + 
     geom_histogram(bins = 50) +
+      labs(y = 'Consumers') + 
+      ggtitle("How many consumers there are per income bin?") +
       # I dont want the x axis to be changing when the user makes selections, so I set the limit to the max possible in the complete dataset
       coord_cartesian(xlim = c(0, max(consumer_df$Income)))
   })
@@ -275,22 +289,32 @@ server <- function(input, output){
   })
   
   
-  # Stacked bar chart
+  # Stacked bar chart for Products tab
   output$stackedbar_purchases<- renderPlotly({
     req(melted_sale_amount()$variable)
     ggplot(data = melted_sale_amount(), aes(x = Month, fill = variable)) + 
       geom_bar(stat = "count") + 
-      scale_x_continuous(breaks=seq(1,12,1))
+      ggtitle('How much do people spend in each type of grocery, by month') +
+      labs(y = 'Amount ($)', fill = 'Gorcery type ') +
+      scale_x_continuous(breaks = 1:12, labels = month.name)
   })
   
   
-  # Bar chart for each sales channel
+  # Bar chart for each sales channel for Channels tab
   output$sales_channel <- renderPlotly({
     # requiring this: otherwise graph crashes when user's selection is empty set
     req(melted_sale_channel_data()$variable)
-    ggplot(data = melted_sale_channel_data(), aes(x = Month, y = value, fill = variable)) + 
+
+      # Needed to take the goruped sums, otherwise the tooltip from plotly gave me the value for each individual customer instead of the aggregated value
+    melted_sale_channel_agg <- melted_sale_channel_data() %>%
+      group_by(Month, variable) %>%
+      summarise_at(vars(value), list(value = sum))
+
+    ggplot(data = melted_sale_channel_agg, aes(x = Month, y = value, fill = variable)) + 
+      labs(y = 'Number of sales') +
       geom_bar(stat = "identity", show.legend = FALSE) + facet_wrap(facets = ~ fct_reorder(variable, -value)) +
-      scale_x_continuous(breaks=seq(1,12,1))
+      scale_x_continuous(breaks = 1:12, labels = abbreviate(month.name, 2)) +
+      ggtitle("How many sales are done in the store, online or thru the catalog, in each month and for the customer profile selected?")
   })
   
   # The table

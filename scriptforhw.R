@@ -95,12 +95,31 @@ grid.arrange(plot1, plot2, ncol=2)
 
 library(reshape2)
 melted_sale_channel <- melt(consumer_df[, c('Month', 'NumStorePurchases', 'NumWebPurchases', 'NumCatalogPurchases')], id = 'Month')
-ggplot(data = melted_data, aes(x = Month, y = value, fill = variable)) + 
+
+
+ggplot(data = melted_sale_channel, aes(x = Month, y = value, fill = variable)) + 
   geom_bar(stat = "identity") + facet_wrap(facets = ~ fct_reorder(variable, -value)) + scale_x_continuous(breaks=seq(1,12,1))
                         
 melted_sale_amount <- melt(consumer_df[, c('Month', "MntWines", "MntFruits", 
                                            "MntMeatProducts", "MntFishProducts", 
                                            "MntSweetProducts", "MntGoldProds")], id = 'Month')
+consumer_df[, c('Month', 'NumStorePurchases', 'NumWebPurchases', 'NumCatalogPurchases')]
+
+melted_sale_channel
+
+melted_sale_channel_agg <- melted_sale_channel %>%
+  group_by(Month, variable) %>%
+  summarise_at(vars(value), list(value_sum = sum))
+
+melted_sale_channel_agg
+
+# %>%
+  summarise_at(vars(tons_waste), list(tons_waste_mean = mean))
+
+
+
+
+
 
 max(consumer_df$Month)
 
@@ -216,4 +235,4 @@ a
 max(consumer_df$Income)
 
 consumer_df$Income
-
+?abbreviate
