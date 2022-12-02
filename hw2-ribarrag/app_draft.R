@@ -34,7 +34,6 @@ consumer_df[, c('Month', "Dt_Customer")]
 pdf(NULL)
 
 
-
 header <- dashboardHeader(
   title = 'HW2 Dashboard')
 
@@ -79,8 +78,8 @@ body <-  dashboardBody(tabItems(
           fluidRow(
             tabBox(title = "Your daily insights for purchases and consumer information",
                    width = 10,
-                   tabPanel("Income", plotOutput('hist_income'), align = 'center'), 
-                   tabPanel("Purchases", plotOutput('stackedbar_purchases'), align = 'center'))
+                   tabPanel("Income", plotlyOutput('hist_income'), align = 'center'), 
+                   tabPanel("Purchases", plotlyOutput('stackedbar_purchases'), align = 'center'))
                    # tabPanel("Height", plotlyOutput("plot_height")))
           )
   ),
@@ -93,8 +92,7 @@ body <-  dashboardBody(tabItems(
           ),
           
           fluidRow(
-            box(title = 'These are sales by month per sale channel', plotOutput('sales_channel'), width = 12)
-            # box(plotOutput('first_plot'), width = 10, align = 'center')
+            box(title = 'These are sales by month per sale channel', plotlyOutput('sales_channel'), width = 12)
           ),
   ),
   tabItem("Tables", 
@@ -256,7 +254,7 @@ server <- function(input, output){
   
   # Histogram income
 
-  output$hist_income <- renderPlot({
+  output$hist_income <- renderPlotly({
     ggplot(data(), aes(Income)) + 
     geom_histogram(bins = 50) +
       # I dont want the x axis to be changing when the user makes selections, so I set the limit to the max possible in the complete dataset
@@ -278,7 +276,7 @@ server <- function(input, output){
   
   
   # Stacked bar chart
-  output$stackedbar_purchases<- renderPlot({
+  output$stackedbar_purchases<- renderPlotly({
     req(melted_sale_amount()$variable)
     ggplot(data = melted_sale_amount(), aes(x = Month, fill = variable)) + 
       geom_bar(stat = "count") + 
@@ -287,7 +285,7 @@ server <- function(input, output){
   
   
   # Bar chart for each sales channel
-  output$sales_channel <- renderPlot({
+  output$sales_channel <- renderPlotly({
     # requiring this: otherwise graph crashes when user's selection is empty set
     req(melted_sale_channel_data()$variable)
     ggplot(data = melted_sale_channel_data(), aes(x = Month, y = value, fill = variable)) + 
