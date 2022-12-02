@@ -40,8 +40,9 @@ header <- dashboardHeader(
 
 sidebar <- dashboardSidebar(
   sidebarMenu(
-    menuItem('Products sold', tabName = 'Products', icon = icon('tree')), 
+    menuItem('Products sold', tabName = 'Products', icon = icon('scale-unbalanced-flip')), 
     menuItem('Sales channels', tabName = 'Channels', icon = icon('truck')),
+    menuItem('Data table', tabName = 'Tables', icon = icon('table')),
     sliderInput("ageSelect",
                 "Select consumer's age range:",
                 min = min(consumer_df$Age), max = max(consumer_df$Age),
@@ -92,10 +93,16 @@ body <-  dashboardBody(tabItems(
           ),
           
           fluidRow(
-            box(plotOutput('sales_channel'), width = 12)
+            box(title = 'These are sales by month per sale channel', plotOutput('sales_channel'), width = 12)
             # box(plotOutput('first_plot'), width = 10, align = 'center')
           ),
-  )
+  ),
+  tabItem("Tables", 
+          fluidPage((
+            box(title = 'The table', DT::dataTableOutput('table'), width = 12)
+          )
+          )
+          )
 )
 ) 
 
@@ -255,10 +262,6 @@ server <- function(input, output){
       # I dont want the x axis to be changing when the user makes selections, so I set the limit to the max possible in the complete dataset
       coord_cartesian(xlim = c(0, max(consumer_df$Income)))
   })
-  # Plot 1
-  # output$first_plot <- renderPlot({
-  #   plot(consumer_df$Income, consumer_df$MntMeatProducts)
-  # })
   
   # Lets first melt the data for the plot
   melted_sale_channel_data <- reactive({
@@ -290,6 +293,11 @@ server <- function(input, output){
     ggplot(data = melted_sale_channel_data(), aes(x = Month, y = value, fill = variable)) + 
       geom_bar(stat = "identity", show.legend = FALSE) + facet_wrap(facets = ~ fct_reorder(variable, -value)) +
       scale_x_continuous(breaks=seq(1,12,1))
+  })
+  
+  # The table
+  output$table <- DT::renderDataTable({
+    subset(data(), select = c('ID', 'Income', 'Education',  'MntPurchases', 'Marital_Status', 'Age', 'Children'))
   })
 }
 

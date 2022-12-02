@@ -149,6 +149,8 @@ ggplot(medias, aes(x=make, y=mileage)) +
        caption="source: mpg") +  
   coord_flip()
 
+colnames(consumer_df)
+
 cty_mpg
 
 ?fluidRow
